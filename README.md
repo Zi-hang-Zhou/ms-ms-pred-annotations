@@ -2,10 +2,8 @@
 
 This is a small local web app for manual structural elucidation annotation.
 
-It is designed for the workflow where annotators receive only the raw test-case
-spectra and basic acquisition metadata. It intentionally does **not** show
-candidate SMILES, ground truth, ICEBERG predictions, model ranks, or any other
-answer-like information.
+For each case, annotators receive the raw test-case
+spectra and basic acquisition metadata. 
 
 ## What Annotators Can Enter
 
