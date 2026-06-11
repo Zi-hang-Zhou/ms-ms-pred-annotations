@@ -188,6 +188,4 @@ The `/api/cases/<case_id>` endpoint returns only:
 - experimental spectra peak lists
 - the current saved manual annotation, if any
 
-It does not return candidate structures, ground truth structures, model scores,
-or predicted spectra. Do not include those fields in `metadata.json` if the
-deployment is intended to be blind.
+
