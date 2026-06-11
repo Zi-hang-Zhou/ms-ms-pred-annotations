@@ -4,7 +4,7 @@ const state = {
   currentSpectrumId: null,
   selectedPeakId: null,
   annotations: new Map(),
-  showAllPeaks: false,
+  showAllPeaks: true,
   dirty: false,
 };
 
@@ -242,6 +242,8 @@ function renderAssignments() {
   if (!spec) return;
   const ranked = [...spec.peaks].sort((a, b) => b.intensity_raw - a.intensity_raw);
   const visible = state.showAllPeaks ? ranked : ranked.slice(0, 30);
+  els.showTopPeaksBtn.textContent = `Top peaks (${Math.min(30, ranked.length)}/${ranked.length})`;
+  els.showAllPeaksBtn.textContent = `All peaks (${ranked.length})`;
   visible.sort((a, b) => a.mz - b.mz);
   const intMax = Math.max(...spec.peaks.map((p) => p.intensity_raw), 1);
   els.assignmentBody.innerHTML = "";
