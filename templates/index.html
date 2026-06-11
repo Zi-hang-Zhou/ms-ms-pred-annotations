@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Blind MS/MS Structure Annotation</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-title">Manual MS/MS Annotation</div>
+          <div class="brand-subtitle">Raw spectra only</div>
+        </div>
+
+        <label class="field-label" for="annotatorInput">Annotator</label>
+        <input id="annotatorInput" class="text-input" placeholder="name or initials">
+
+        <div class="case-tools">
+          <input id="caseSearch" class="text-input" placeholder="Search case">
+          <select id="statusFilter" class="text-input">
+            <option value="all">All statuses</option>
+            <option value="not_started">Not started</option>
+            <option value="in_progress">In progress</option>
+            <option value="review">Review</option>
+            <option value="complete">Complete</option>
+          </select>
+        </div>
+
+        <div id="caseList" class="case-list"></div>
+
+        <div class="export-box">
+          <a href="/api/export/final_structures.csv">Export final structures</a>
+          <a href="/api/export/annotations.json">Export full annotations</a>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <div id="caseTitle" class="case-title">Select a case</div>
+            <div id="caseMeta" class="case-meta"></div>
+          </div>
+          <div class="topbar-actions">
+            <button id="saveBtn" class="primary-btn" disabled>Save</button>
+          </div>
+        </header>
+
+        <section class="content-grid">
+          <div class="spectrum-panel">
+            <div class="panel-header">
+              <div>
+                <h2>Experimental MS/MS</h2>
+                <p>Only raw test-case spectra and basic acquisition metadata are shown.</p>
+              </div>
+              <div id="spectrumTabs" class="tabs"></div>
+            </div>
+            <div id="spectrumPlot" class="spectrum-plot"></div>
+            <div id="peakReadout" class="peak-readout">Click a peak or table row to annotate it.</div>
+          </div>
+
+          <div class="structure-panel">
+            <div class="panel-header compact">
+              <h2>Final Structure</h2>
+              <select id="statusSelect" class="text-input status-select">
+                <option value="in_progress">In progress</option>
+                <option value="review">Needs review</option>
+                <option value="complete">Complete</option>
+              </select>
+            </div>
+
+            <label class="field-label" for="finalSmiles">Final SMILES</label>
+            <textarea id="finalSmiles" class="textarea mono" rows="3" placeholder="Manual best structure SMILES"></textarea>
+
+            <div class="form-row">
+              <label>
+                <span class="field-label">Formula</span>
+                <input id="finalFormula" class="text-input mono" placeholder="e.g. C20H21N3O">
+              </label>
+              <label>
+                <span class="field-label">Adduct</span>
+                <input id="finalAdduct" class="text-input mono" placeholder="[M+H]+">
+              </label>
+              <label>
+                <span class="field-label">Confidence</span>
+                <select id="finalConfidence" class="text-input">
+                  <option value="">Unset</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                  <option value="ambiguous">Ambiguous</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="field-label" for="finalInchi">InChI / InChIKey</label>
+            <div class="form-row two">
+              <input id="finalInchi" class="text-input mono" placeholder="InChI if available">
+              <input id="finalInchikey" class="text-input mono" placeholder="InChIKey if available">
+            </div>
+
+            <label class="field-label" for="globalNotes">Reasoning notes</label>
+            <textarea id="globalNotes" class="textarea" rows="5" placeholder="Why this structure? Which peaks are diagnostic? What remains ambiguous?"></textarea>
+          </div>
+        </section>
+
+        <section class="assignment-panel">
+          <div class="panel-header compact">
+            <div>
+              <h2>Peak Assignments</h2>
+              <p>Assign important peaks to fragment structures, neutral losses, precursor/isotope peaks, or leave as unassigned.</p>
+            </div>
+            <div class="assignment-tools">
+              <button id="showTopPeaksBtn" class="secondary-btn">Top peaks</button>
+              <button id="showAllPeaksBtn" class="secondary-btn">All peaks</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="assignment-table">
+              <thead>
+                <tr>
+                  <th>m/z</th>
+                  <th>Rel.</th>
+                  <th>Type</th>
+                  <th>Fragment SMILES / structure note</th>
+                  <th>Fragment formula</th>
+                  <th>Neutral loss</th>
+                  <th>Theor. m/z</th>
+                  <th>Conf.</th>
+                  <th>Evidence note</th>
+                </tr>
+              </thead>
+              <tbody id="assignmentBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

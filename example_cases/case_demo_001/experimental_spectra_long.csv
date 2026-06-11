@@ -1,0 +1,27 @@
+case_id,spectrum_id,spectrum_type,collision_label,collision_value_nce,collision_energy_ev,peak_count,mz,intensity_raw,intensity_display
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,181.0713,1000,1.000
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,163.0608,420,0.420
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,145.0502,185,0.185
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,135.0447,92,0.092
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,119.0495,76,0.076
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,107.0493,138,0.138
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,91.0542,64,0.064
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,79.0541,43,0.043
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,77.0385,39,0.039
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,65.0386,22,0.022
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,53.0387,18,0.018
+case_demo_001,spectrum_01,ms2,collision 20 eV,,20.0,12,39.0230,12,0.012
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,181.0713,190,0.190
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,163.0608,360,0.360
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,145.0502,510,0.510
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,135.0447,245,0.245
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,119.0495,220,0.220
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,107.0493,1000,1.000
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,91.0542,620,0.620
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,79.0541,310,0.310
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,77.0385,290,0.290
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,65.0386,160,0.160
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,53.0387,95,0.095
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,51.0231,82,0.082
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,39.0230,55,0.055
+case_demo_001,spectrum_02,ms2,collision 40 eV,,40.0,14,27.0230,34,0.034

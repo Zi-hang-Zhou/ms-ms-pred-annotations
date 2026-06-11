@@ -1,0 +1,30 @@
+{
+  "case_id": "case_demo_001",
+  "feature": {
+    "precursor_mz": 181.0713,
+    "retention_time_min": 3.42,
+    "method": "Demo LC-MS/MS",
+    "sample": "Synthetic demo case",
+    "instrument": "QTOF",
+    "adduct": "[M+H]+",
+    "ion_mode": "positive"
+  },
+  "experimental_spectra_summary": [
+    {
+      "spectrum_id": "spectrum_01",
+      "spectrum_type": "ms2",
+      "collision_label": "collision 20 eV",
+      "collision_value_nce": null,
+      "collision_energy_ev": 20.0,
+      "peak_count": 12
+    },
+    {
+      "spectrum_id": "spectrum_02",
+      "spectrum_type": "ms2",
+      "collision_label": "collision 40 eV",
+      "collision_value_nce": null,
+      "collision_energy_ev": 40.0,
+      "peak_count": 14
+    }
+  ]
+}
