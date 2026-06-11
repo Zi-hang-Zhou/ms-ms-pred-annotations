@@ -135,9 +135,6 @@ By default, the converter omits structure-like MGF fields such as `SMILES`,
 `INCHI`, `INCHIKEY`, and `INCHI_AUX`. It also omits `FORMULA` unless you pass
 `--keep-formula`.
 
-Do not commit real MGF files or converted real case directories unless you have
-permission to publish them. The repository `.gitignore` ignores common raw data
-and converted-case paths by default.
 
 ## Outputs
 
@@ -164,11 +161,3 @@ It does not return candidate structures, ground truth structures, model scores,
 or predicted spectra. Do not include those fields in `metadata.json` if the
 deployment is intended to be blind.
 
-## CASMI / Competition Use
-
-This tool only provides an annotation interface. Whether human-in-the-loop or
-manual structural elucidation is allowed for a specific competition submission
-depends on that competition's official rules.
-
-Do not commit private spectra, commercial datasets, non-public libraries, API
-keys, or annotator outputs unless you have permission to publish them.
