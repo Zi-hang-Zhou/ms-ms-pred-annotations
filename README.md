@@ -119,7 +119,11 @@ Then run the app on the converted cases:
 
 ```bash
 ANNOTATION_CASE_DIR=converted_cases python app.py
-or
+```
+
+Or specify a custom annotation output directory:
+
+```bash
 ANNOTATION_CASE_DIR=converted_cases \
 ANNOTATION_OUTPUT_DIR=annotations_msnlib \
 python app.py
@@ -137,31 +141,47 @@ python scripts/convert_mgf_to_cases.py \
 
 By default, the converter omits structure-like MGF fields such as `SMILES`,
 `INCHI`, `INCHIKEY`, and `INCHI_AUX`. It also omits `FORMULA` unless you pass
-`--keep-formula`.(IF your mgf has it in your metadata)
+`--keep-formula`, if `FORMULA` is present in the MGF metadata.
 
+## Outputs
 
-Outputs
+When an annotator clicks **Save**, one JSON file is saved per case under the
+annotation output directory:
 
-When an annotator clicks Save, one JSON file is saved per case under the annotation output directory:
-
+```text
 annotations/<case_id>.json
+```
 
 If you run with a custom output directory, for example:
 
+```bash
 ANNOTATION_CASE_DIR=converted_cases \
 ANNOTATION_OUTPUT_DIR=annotations_msnlib \
 python app.py
+```
 
 then saved annotations are written to:
 
+```text
 annotations_msnlib/<case_id>.json
+```
 
-Export endpoints:
+Export endpoints are available only while `python app.py` is still running:
 
-http://127.0.0.1:7861/api/export/final_structures.csv
-http://127.0.0.1:7861/api/export/annotations.json
+- `http://127.0.0.1:7861/api/export/final_structures.csv`
+- `http://127.0.0.1:7861/api/export/annotations.json`
 
-These endpoints summarize the saved local annotation JSON files and return a CSV or JSON response in the browser. 
+Open these URLs in a browser to view or download the exported CSV/JSON, or use
+`curl` from another terminal:
+
+```bash
+curl -o final_structures.csv http://127.0.0.1:7861/api/export/final_structures.csv
+curl -o annotations.json http://127.0.0.1:7861/api/export/annotations.json
+```
+
+These endpoints summarize the saved local annotation JSON files. They do not
+upload data anywhere.
+
 ## Blindness Boundary
 
 The `/api/cases/<case_id>` endpoint returns only:
@@ -170,4 +190,6 @@ The `/api/cases/<case_id>` endpoint returns only:
 - experimental spectra peak lists
 - the current saved manual annotation, if any
 
-
+It does not return candidate structures, ground truth structures, model scores,
+or predicted spectra. Do not include those fields in `metadata.json` if the
+deployment is intended to be blind.
