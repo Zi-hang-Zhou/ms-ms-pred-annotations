@@ -106,6 +106,7 @@ function renderCaseList() {
   for (const item of filtered) {
     const div = document.createElement("div");
     div.className = "case-item" + (state.currentCase?.case_id === item.case_id ? " active" : "");
+    div.title = item.case_id;
     div.addEventListener("click", () => loadCase(item.case_id));
     div.innerHTML = `
       <div class="case-row">
