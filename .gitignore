@@ -1,5 +1,12 @@
 annotations/*
 !annotations/.gitkeep
+*.mgf
+*.mzML
+*.mzXML
+*.hdf5
+*.h5
+cases*/
+converted_cases*/
 __pycache__/
 *.py[cod]
 .DS_Store

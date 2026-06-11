@@ -104,6 +104,41 @@ case_id,spectrum_id,spectrum_type,collision_label,collision_value_nce,collision_
 Rows are one peak per line. Multiple spectra for the same case are represented
 with different `spectrum_id` values.
 
+## Convert an MGF File
+
+If your spectra are in MGF format, convert them into case directories first:
+
+```bash
+python scripts/convert_mgf_to_cases.py \
+  --mgf /path/to/spectra.mgf \
+  --out converted_cases \
+  --prefix msnlib
+```
+
+Then run the app on the converted cases:
+
+```bash
+ANNOTATION_CASE_DIR=converted_cases python app.py
+```
+
+For a quick test:
+
+```bash
+python scripts/convert_mgf_to_cases.py \
+  --mgf /path/to/spectra.mgf \
+  --out converted_cases_smoke \
+  --prefix msnlib \
+  --limit 5
+```
+
+By default, the converter omits structure-like MGF fields such as `SMILES`,
+`INCHI`, `INCHIKEY`, and `INCHI_AUX`. It also omits `FORMULA` unless you pass
+`--keep-formula`.
+
+Do not commit real MGF files or converted real case directories unless you have
+permission to publish them. The repository `.gitignore` ignores common raw data
+and converted-case paths by default.
+
 ## Outputs
 
 One JSON file is saved per case:
