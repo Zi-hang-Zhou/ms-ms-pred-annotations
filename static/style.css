@@ -1,5 +1,6 @@
 :root {
   color-scheme: light;
+  --upper-panel-height: 330px;
   --bg: #f6f7f9;
   --panel: #ffffff;
   --panel-2: #f0f3f6;
@@ -187,7 +188,7 @@ textarea {
 .workspace {
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -197,6 +198,7 @@ textarea {
   border-bottom: 1px solid var(--border);
   padding: 10px 22px;
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -240,6 +242,10 @@ textarea {
 .content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.75fr);
+  align-items: stretch;
+  flex: 0 0 var(--upper-panel-height);
+  height: var(--upper-panel-height);
+  min-height: 250px;
   gap: 8px;
   padding: 6px 18px 0;
 }
@@ -256,11 +262,57 @@ textarea {
 .spectrum-panel,
 .structure-panel {
   padding: 8px 12px;
+  min-height: 0;
+}
+
+.spectrum-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.structure-panel {
+  overflow: auto;
 }
 
 .assignment-panel {
-  margin: 6px 18px 18px;
-  min-height: 340px;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0 18px 18px;
+}
+
+.layout-resize-handle {
+  flex: 0 0 12px;
+  margin: 0 18px;
+  cursor: row-resize;
+  position: relative;
+  touch-action: none;
+}
+
+.layout-resize-handle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 5px;
+  height: 2px;
+  border-radius: 999px;
+  background: #cbd5df;
+}
+
+.layout-resize-handle:hover::before,
+.layout-resize-handle:focus-visible::before {
+  background: var(--accent);
+}
+
+.layout-resize-handle:focus-visible {
+  outline: none;
+}
+
+.resizing-layout {
+  cursor: row-resize;
+  user-select: none;
 }
 
 .panel-header {
@@ -309,7 +361,8 @@ h2 {
 
 .spectrum-plot {
   width: 100%;
-  height: 190px;
+  flex: 1 1 auto;
+  min-height: 120px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #fbfcfd;
@@ -337,6 +390,7 @@ h2 {
 }
 
 .assignment-panel .panel-header {
+  flex: 0 0 auto;
   padding: 8px 14px 5px;
 }
 
@@ -346,8 +400,8 @@ h2 {
 }
 
 .table-wrap {
-  max-height: calc(100vh - 450px);
-  min-height: 460px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
   border-top: 1px solid var(--border);
 }
@@ -466,6 +520,25 @@ h2 {
 
   .content-grid {
     grid-template-columns: 1fr;
+    flex: 0 0 auto;
+    height: auto;
+  }
+
+  .workspace {
+    overflow: auto;
+  }
+
+  .layout-resize-handle {
+    display: none;
+  }
+
+  .spectrum-plot {
+    flex: none;
+    height: 220px;
+  }
+
+  .assignment-panel {
+    min-height: 420px;
   }
 
   .form-row,

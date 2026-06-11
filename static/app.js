@@ -30,6 +30,7 @@ const els = {
   assignmentBody: document.getElementById("assignmentBody"),
   showTopPeaksBtn: document.getElementById("showTopPeaksBtn"),
   showAllPeaksBtn: document.getElementById("showAllPeaksBtn"),
+  layoutResizeHandle: document.getElementById("layoutResizeHandle"),
   toast: document.getElementById("toast"),
 };
 
@@ -50,6 +51,9 @@ const ASSIGNMENT_TYPES = [
 ];
 
 const CONFIDENCES = ["", "high", "medium", "low", "ambiguous"];
+const UPPER_PANEL_HEIGHT_KEY = "annotationUpperPanelHeight";
+const MIN_UPPER_PANEL_HEIGHT = 250;
+const MIN_ASSIGNMENT_HEIGHT = 280;
 
 function init() {
   els.annotator.value = localStorage.getItem("annotator") || "";
@@ -80,6 +84,7 @@ function init() {
     els.globalNotes,
   ].forEach((el) => el.addEventListener("input", markDirty));
 
+  setupLayoutResize();
   loadCases();
 }
 
@@ -212,7 +217,7 @@ function renderSpectrum() {
   }
   const peaks = spec.peaks;
   const width = Math.max(720, els.spectrumPlot.clientWidth || 720);
-  const height = 190;
+  const height = Math.max(120, els.spectrumPlot.clientHeight || 190);
   const pad = { left: 48, right: 18, top: 8, bottom: 26 };
   const mzMin = Math.min(...peaks.map((p) => p.mz));
   const mzMax = Math.max(...peaks.map((p) => p.mz));
@@ -242,6 +247,67 @@ function renderSpectrum() {
     line.addEventListener("mousemove", (event) => showPeakTooltip(event, line));
     line.addEventListener("mouseleave", hidePeakTooltip);
   });
+}
+
+function setupLayoutResize() {
+  const savedHeight = Number(localStorage.getItem(UPPER_PANEL_HEIGHT_KEY));
+  if (Number.isFinite(savedHeight) && savedHeight > 0) {
+    setUpperPanelHeight(savedHeight, false);
+  }
+
+  els.layoutResizeHandle.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    document.body.classList.add("resizing-layout");
+    els.layoutResizeHandle.setPointerCapture(event.pointerId);
+
+    const onPointerMove = (moveEvent) => {
+      const gridTop = document.querySelector(".content-grid").getBoundingClientRect().top;
+      setUpperPanelHeight(moveEvent.clientY - gridTop, true);
+    };
+
+    const onPointerUp = () => {
+      document.body.classList.remove("resizing-layout");
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+  });
+
+  els.layoutResizeHandle.addEventListener("keydown", (event) => {
+    if (!["ArrowUp", "ArrowDown"].includes(event.key)) return;
+    event.preventDefault();
+    const current = getUpperPanelHeight();
+    setUpperPanelHeight(current + (event.key === "ArrowDown" ? 24 : -24), true);
+  });
+
+  window.addEventListener("resize", () => {
+    setUpperPanelHeight(getUpperPanelHeight(), false);
+    renderSpectrum();
+  });
+}
+
+function getUpperPanelHeight() {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--upper-panel-height");
+  return Number.parseFloat(raw) || 330;
+}
+
+function setUpperPanelHeight(height, persist) {
+  const workspace = document.querySelector(".workspace");
+  const topbar = document.querySelector(".topbar");
+  const maxHeight = Math.max(
+    MIN_UPPER_PANEL_HEIGHT,
+    workspace.clientHeight - topbar.offsetHeight - MIN_ASSIGNMENT_HEIGHT - 34
+  );
+  const nextHeight = Math.min(Math.max(height, MIN_UPPER_PANEL_HEIGHT), maxHeight);
+  document.documentElement.style.setProperty("--upper-panel-height", `${Math.round(nextHeight)}px`);
+  if (persist) {
+    localStorage.setItem(UPPER_PANEL_HEIGHT_KEY, String(Math.round(nextHeight)));
+  }
+  if (state.currentCase) {
+    window.requestAnimationFrame(renderSpectrum);
+  }
 }
 
 function renderAssignments() {
