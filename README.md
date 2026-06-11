@@ -133,7 +133,7 @@ python scripts/convert_mgf_to_cases.py \
 
 By default, the converter omits structure-like MGF fields such as `SMILES`,
 `INCHI`, `INCHIKEY`, and `INCHI_AUX`. It also omits `FORMULA` unless you pass
-`--keep-formula`.
+`--keep-formula`.(IF your mgf has it in your metadata)
 
 
 ## Outputs
