@@ -33,6 +33,10 @@ const els = {
   toast: document.getElementById("toast"),
 };
 
+const peakTooltip = document.createElement("div");
+peakTooltip.className = "peak-tooltip";
+document.body.appendChild(peakTooltip);
+
 const ASSIGNMENT_TYPES = [
   "",
   "precursor",
@@ -224,16 +228,18 @@ function renderSpectrum() {
   for (const p of peaks) {
     const px = x(p.mz);
     const py = y(p.intensity_raw);
+    const rel = p.intensity_raw / intMax;
     const assigned = state.annotations.has(p.peak_id);
     const selected = state.selectedPeakId === p.peak_id;
     const cls = `peak-line${assigned ? " assigned" : ""}${selected ? " selected" : ""}`;
-    svg += `<line class="${cls}" data-peak-id="${escapeAttr(p.peak_id)}" x1="${px.toFixed(2)}" y1="${axisY}" x2="${px.toFixed(2)}" y2="${py.toFixed(2)}">`;
-    svg += `<title>${p.mz.toFixed(4)} · rel ${(p.intensity_raw / intMax).toFixed(3)}</title></line>`;
+    svg += `<line class="${cls}" data-peak-id="${escapeAttr(p.peak_id)}" data-mz="${p.mz.toFixed(4)}" data-rel="${rel.toFixed(3)}" x1="${px.toFixed(2)}" y1="${axisY}" x2="${px.toFixed(2)}" y2="${py.toFixed(2)}"></line>`;
   }
   svg += `</svg>`;
   els.spectrumPlot.innerHTML = svg;
   els.spectrumPlot.querySelectorAll(".peak-line").forEach((line) => {
     line.addEventListener("click", () => selectPeak(line.dataset.peakId));
+    line.addEventListener("mousemove", (event) => showPeakTooltip(event, line));
+    line.addEventListener("mouseleave", hidePeakTooltip);
   });
 }
 
@@ -242,7 +248,7 @@ function renderAssignments() {
   if (!spec) return;
   const ranked = [...spec.peaks].sort((a, b) => b.intensity_raw - a.intensity_raw);
   const visible = state.showAllPeaks ? ranked : ranked.slice(0, 30);
-  els.showTopPeaksBtn.textContent = `Top peaks (${Math.min(30, ranked.length)}/${ranked.length})`;
+  els.showTopPeaksBtn.textContent = `Top peaks by intensity (${Math.min(30, ranked.length)}/${ranked.length})`;
   els.showAllPeaksBtn.textContent = `All peaks (${ranked.length})`;
   visible.sort((a, b) => a.mz - b.mz);
   const intMax = Math.max(...spec.peaks.map((p) => p.intensity_raw), 1);
@@ -321,6 +327,18 @@ function selectPeak(peakId) {
   renderAssignments();
   const row = els.assignmentBody.querySelector(`tr[data-peak-id="${cssEscape(peakId)}"]`);
   if (row) row.scrollIntoView({ block: "nearest" });
+}
+
+function showPeakTooltip(event, line) {
+  peakTooltip.innerHTML = `m/z ${escapeHtml(line.dataset.mz)}<br>rel ${escapeHtml(line.dataset.rel)}`;
+  peakTooltip.style.display = "block";
+  const offset = 14;
+  peakTooltip.style.left = `${event.clientX + offset}px`;
+  peakTooltip.style.top = `${event.clientY + offset}px`;
+}
+
+function hidePeakTooltip() {
+  peakTooltip.style.display = "none";
 }
 
 function collectAnnotation() {

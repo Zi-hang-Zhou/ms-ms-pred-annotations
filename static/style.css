@@ -402,6 +402,21 @@ h2 {
   opacity: 1;
 }
 
+.peak-tooltip {
+  position: fixed;
+  z-index: 20;
+  display: none;
+  pointer-events: none;
+  background: #111827;
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+  white-space: nowrap;
+}
+
 .axis-label {
   fill: #526172;
   font-size: 11px;
