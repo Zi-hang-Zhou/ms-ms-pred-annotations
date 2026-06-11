@@ -119,6 +119,10 @@ Then run the app on the converted cases:
 
 ```bash
 ANNOTATION_CASE_DIR=converted_cases python app.py
+or
+ANNOTATION_CASE_DIR=converted_cases \
+ANNOTATION_OUTPUT_DIR=annotations_msnlib \
+python app.py
 ```
 
 For a quick test:
@@ -136,19 +140,28 @@ By default, the converter omits structure-like MGF fields such as `SMILES`,
 `--keep-formula`.(IF your mgf has it in your metadata)
 
 
-## Outputs
+Outputs
 
-One JSON file is saved per case:
+When an annotator clicks Save, one JSON file is saved per case under the annotation output directory:
 
-```text
 annotations/<case_id>.json
-```
 
-Exports:
+If you run with a custom output directory, for example:
 
-- `http://127.0.0.1:7861/api/export/final_structures.csv`
-- `http://127.0.0.1:7861/api/export/annotations.json`
+ANNOTATION_CASE_DIR=converted_cases \
+ANNOTATION_OUTPUT_DIR=annotations_msnlib \
+python app.py
 
+then saved annotations are written to:
+
+annotations_msnlib/<case_id>.json
+
+Export endpoints:
+
+http://127.0.0.1:7861/api/export/final_structures.csv
+http://127.0.0.1:7861/api/export/annotations.json
+
+These endpoints summarize the saved local annotation JSON files and return a CSV or JSON response in the browser. 
 ## Blindness Boundary
 
 The `/api/cases/<case_id>` endpoint returns only:
