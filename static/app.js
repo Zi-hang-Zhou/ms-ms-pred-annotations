@@ -212,8 +212,8 @@ function renderSpectrum() {
   }
   const peaks = spec.peaks;
   const width = Math.max(720, els.spectrumPlot.clientWidth || 720);
-  const height = 220;
-  const pad = { left: 48, right: 18, top: 10, bottom: 28 };
+  const height = 190;
+  const pad = { left: 48, right: 18, top: 8, bottom: 26 };
   const mzMin = Math.min(...peaks.map((p) => p.mz));
   const mzMax = Math.max(...peaks.map((p) => p.mz));
   const intMax = Math.max(...peaks.map((p) => p.intensity_raw), 1);
