@@ -195,7 +195,7 @@ textarea {
 .topbar {
   background: #fff;
   border-bottom: 1px solid var(--border);
-  padding: 16px 22px;
+  padding: 12px 22px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -203,7 +203,7 @@ textarea {
 }
 
 .case-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 750;
 }
 
@@ -240,8 +240,8 @@ textarea {
 .content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.75fr);
-  gap: 14px;
-  padding: 14px 18px 0;
+  gap: 12px;
+  padding: 10px 18px 0;
 }
 
 .spectrum-panel,
@@ -255,11 +255,11 @@ textarea {
 
 .spectrum-panel,
 .structure-panel {
-  padding: 14px;
+  padding: 12px;
 }
 
 .assignment-panel {
-  margin: 14px 18px 18px;
+  margin: 10px 18px 18px;
   min-height: 340px;
 }
 
@@ -268,7 +268,7 @@ textarea {
   justify-content: space-between;
   align-items: flex-start;
   gap: 14px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .panel-header.compact {
@@ -305,7 +305,7 @@ h2 {
 
 .spectrum-plot {
   width: 100%;
-  height: 330px;
+  height: 260px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #fbfcfd;
@@ -313,15 +313,15 @@ h2 {
 }
 
 .peak-readout {
-  margin-top: 8px;
-  min-height: 18px;
+  margin-top: 6px;
+  min-height: 16px;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-  margin: 10px 0;
+  gap: 8px;
+  margin: 8px 0;
 }
 
 .form-row.two {
@@ -333,7 +333,7 @@ h2 {
 }
 
 .assignment-panel .panel-header {
-  padding: 14px 14px 8px;
+  padding: 12px 14px 8px;
 }
 
 .assignment-tools {
@@ -342,7 +342,8 @@ h2 {
 }
 
 .table-wrap {
-  max-height: 430px;
+  max-height: calc(100vh - 555px);
+  min-height: 360px;
   overflow: auto;
   border-top: 1px solid var(--border);
 }
