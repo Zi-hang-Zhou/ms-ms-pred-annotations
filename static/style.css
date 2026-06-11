@@ -271,7 +271,21 @@ textarea {
 }
 
 .structure-panel {
+  display: flex;
+  flex-direction: column;
   overflow: auto;
+}
+
+.structure-panel .panel-header,
+.structure-panel .field-label,
+.structure-panel .form-row,
+.structure-panel #finalSmiles {
+  flex: 0 0 auto;
+}
+
+.structure-panel #globalNotes {
+  flex: 1 1 auto;
+  min-height: 52px;
 }
 
 .assignment-panel {
