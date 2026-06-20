@@ -1,0 +1,4 @@
+case_id,source,rank,formula,adduct,score,created_at
+case_demo_001,demo_iceberg,1,C9H8O4,[M+H]+,0.82,2026-06-20T00:00:00+00:00
+case_demo_001,demo_iceberg,2,C10H10O4,[M+H]+,0.64,2026-06-20T00:00:00+00:00
+case_demo_001,demo_iceberg,3,C9H8O3,[M+H]+,0.48,2026-06-20T00:00:00+00:00

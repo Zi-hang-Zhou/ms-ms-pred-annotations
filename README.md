@@ -131,6 +131,17 @@ The default annotation output directory is:
 annotations
 ```
 
+The included demo case also contains small synthetic ICEBERG-style evidence
+files, so you can preview assisted mode without any private dataset:
+
+```bash
+ANNOTATION_ENABLE_MODEL_EVIDENCE=1 python app.py
+```
+
+In assisted demo mode, open `http://127.0.0.1:7861` and select
+`case_demo_001`. The Final Structure panel will show demo candidate structures,
+candidate SMILES, formula predictions, and predicted peak evidence.
+
 ## Run With Your Own Cases
 
 Point `ANNOTATION_CASE_DIR` to a directory containing one subdirectory per case:
