@@ -11,7 +11,7 @@
       <aside class="sidebar">
         <div class="brand">
           <div class="brand-title">Manual MS/MS Annotation</div>
-          <div class="brand-subtitle">Raw spectra only</div>
+          <div class="brand-subtitle">Blind or assisted mode</div>
         </div>
 
         <label class="field-label" for="annotatorInput">Annotator</label>
@@ -47,12 +47,29 @@
           </div>
         </header>
 
+        <section id="overviewPanel" class="overview-panel">
+          <div class="overview-block">
+            <div class="section-kicker">Project Overview</div>
+            <div id="progressSnapshot" class="progress-snapshot"></div>
+          </div>
+          <div class="overview-block feature-map-block">
+            <div class="overview-row">
+              <div>
+                <div class="section-kicker">Feature Map</div>
+                <div id="featureMapSubtitle" class="overview-subtitle">RT or case index vs precursor m/z · click a point to open a case</div>
+              </div>
+              <button id="resetFeatureMapBtn" class="secondary-btn compact-btn" type="button">Reset filters</button>
+            </div>
+            <div id="featureMap" class="feature-map"></div>
+          </div>
+        </section>
+
         <section class="content-grid">
           <div class="spectrum-panel">
             <div class="panel-header">
               <div>
                 <h2>Experimental MS/MS</h2>
-                <p>Only raw test-case spectra and basic acquisition metadata are shown.</p>
+                <p>Raw spectra are shown here; model evidence appears separately when enabled.</p>
               </div>
               <div id="spectrumTabs" class="tabs"></div>
             </div>
@@ -69,6 +86,19 @@
                 <option value="complete">Complete</option>
               </select>
             </div>
+
+            <section id="modelEvidencePanel" class="model-evidence-panel hidden">
+              <div class="evidence-header">
+                <div>
+                  <h3>ICEBERG Starting Point</h3>
+                  <p id="modelEvidenceMeta"></p>
+                </div>
+                <button id="useCandidateBtn" class="secondary-btn" type="button">Fill final structure</button>
+              </div>
+              <div id="formulaEvidence" class="formula-evidence"></div>
+              <div id="candidateEvidenceList" class="candidate-evidence-list"></div>
+              <div id="predictedPeakEvidence" class="predicted-peak-evidence"></div>
+            </section>
 
             <label class="field-label" for="finalSmiles">Final SMILES</label>
             <textarea id="finalSmiles" class="textarea mono" rows="2" placeholder="Manual best structure SMILES"></textarea>

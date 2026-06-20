@@ -3,6 +3,7 @@ const state = {
   currentCase: null,
   currentSpectrumId: null,
   selectedPeakId: null,
+  selectedCandidateId: null,
   annotations: new Map(),
   showAllPeaks: true,
   dirty: false,
@@ -16,6 +17,11 @@ const els = {
   caseTitle: document.getElementById("caseTitle"),
   caseMeta: document.getElementById("caseMeta"),
   saveBtn: document.getElementById("saveBtn"),
+  overviewPanel: document.getElementById("overviewPanel"),
+  progressSnapshot: document.getElementById("progressSnapshot"),
+  featureMap: document.getElementById("featureMap"),
+  featureMapSubtitle: document.getElementById("featureMapSubtitle"),
+  resetFeatureMapBtn: document.getElementById("resetFeatureMapBtn"),
   spectrumTabs: document.getElementById("spectrumTabs"),
   spectrumPlot: document.getElementById("spectrumPlot"),
   peakReadout: document.getElementById("peakReadout"),
@@ -27,6 +33,12 @@ const els = {
   finalInchi: document.getElementById("finalInchi"),
   finalInchikey: document.getElementById("finalInchikey"),
   globalNotes: document.getElementById("globalNotes"),
+  modelEvidencePanel: document.getElementById("modelEvidencePanel"),
+  modelEvidenceMeta: document.getElementById("modelEvidenceMeta"),
+  formulaEvidence: document.getElementById("formulaEvidence"),
+  candidateEvidenceList: document.getElementById("candidateEvidenceList"),
+  predictedPeakEvidence: document.getElementById("predictedPeakEvidence"),
+  useCandidateBtn: document.getElementById("useCandidateBtn"),
   assignmentBody: document.getElementById("assignmentBody"),
   showTopPeaksBtn: document.getElementById("showTopPeaksBtn"),
   showAllPeaksBtn: document.getElementById("showAllPeaksBtn"),
@@ -63,7 +75,9 @@ function init() {
   });
   els.caseSearch.addEventListener("input", renderCaseList);
   els.statusFilter.addEventListener("change", renderCaseList);
+  els.resetFeatureMapBtn.addEventListener("click", resetFeatureMapView);
   els.saveBtn.addEventListener("click", saveAnnotation);
+  els.useCandidateBtn.addEventListener("click", useSelectedCandidate);
   els.showTopPeaksBtn.addEventListener("click", () => {
     state.showAllPeaks = false;
     renderAssignments();
@@ -93,6 +107,7 @@ async function loadCases() {
   if (!resp.ok) throw new Error(await resp.text());
   const data = await resp.json();
   state.cases = data.cases;
+  renderOverview();
   renderCaseList();
   if (state.cases.length) {
     loadCase(state.cases[0].case_id);
@@ -119,9 +134,27 @@ function renderCaseList() {
         <span class="badge ${escapeHtml(item.status)}">${statusLabel(item.status)}</span>
       </div>
       <div class="brand-subtitle">${item.spectrum_count} spectra · ${item.peak_count} peaks</div>
+      ${caseEvidenceHtml(item)}
     `;
     els.caseList.appendChild(div);
   }
+}
+
+function caseEvidenceHtml(item) {
+  const summary = item.model_evidence_summary;
+  if (!summary) return "";
+  const formula = summary.top_formula?.formula || "";
+  const adduct = summary.top_formula?.adduct || summary.top_candidate?.adduct || "";
+  const smiles = summary.top_candidate?.smiles || "";
+  const dist = summary.top_candidate?.entropy_distance;
+  const formulaText = formula ? `${formula} ${adduct}`.trim() : "formula unavailable";
+  const distText = dist === null || dist === undefined ? "" : ` · dist ${formatNumber(dist, 3)}`;
+  return `
+    <div class="case-evidence">
+      <div>Top formula: <span class="mono">${escapeHtml(formulaText)}</span></div>
+      <div>ICEBERG #1${escapeHtml(distText)}: <span class="mono">${escapeHtml(smiles)}</span></div>
+    </div>
+  `;
 }
 
 async function loadCase(caseId) {
@@ -132,6 +165,7 @@ async function loadCase(caseId) {
   state.currentCase = data;
   state.currentSpectrumId = data.spectra[0]?.spectrum_id || null;
   state.selectedPeakId = null;
+  state.selectedCandidateId = data.model_evidence?.candidates?.[0]?.candidate_id || null;
   state.annotations = new Map();
   loadAnnotationIntoState(data.annotation);
   fillForm(data.annotation);
@@ -139,6 +173,104 @@ async function loadCase(caseId) {
   els.saveBtn.disabled = false;
   renderCaseList();
   renderCase();
+}
+
+function renderOverview() {
+  const cases = state.cases || [];
+  if (!cases.length) {
+    els.overviewPanel.classList.add("hidden");
+    return;
+  }
+  els.overviewPanel.classList.remove("hidden");
+
+  const statusCounts = countBy(cases, (item) => item.status || "not_started");
+  const evidenceCount = cases.filter((item) => item.model_evidence_available).length;
+  const confidenceCounts = countBy(cases, (item) => item.final_confidence || "unset");
+  els.progressSnapshot.innerHTML = [
+    metricCard("Cases", cases.length),
+    metricCard("Complete", statusCounts.complete || 0),
+    metricCard("In review", statusCounts.review || 0),
+    metricCard("Model evidence", evidenceCount),
+    metricCard("High confidence", confidenceCounts.high || 0),
+  ].join("");
+
+  renderFeatureMap();
+}
+
+function metricCard(label, value) {
+  return `
+    <div class="metric-card">
+      <div class="metric-value">${escapeHtml(value)}</div>
+      <div class="metric-label">${escapeHtml(label)}</div>
+    </div>
+  `;
+}
+
+function countBy(items, fn) {
+  return items.reduce((acc, item) => {
+    const key = fn(item);
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function renderFeatureMap() {
+  const rawPoints = (state.cases || [])
+    .map((item, index) => {
+      const feature = item.feature || {};
+      const rt = Number(feature.retention_time_min);
+      const mz = Number(feature.precursor_mz);
+      if (!Number.isFinite(mz)) return null;
+      return {
+        ...item,
+        index,
+        rt: Number.isFinite(rt) ? rt : null,
+        mz,
+      };
+    })
+    .filter(Boolean);
+
+  if (!rawPoints.length) {
+    els.featureMapSubtitle.textContent = "No precursor m/z metadata available";
+    els.featureMap.innerHTML = `<div class="empty-map">No precursor m/z metadata available</div>`;
+    return;
+  }
+
+  const hasRt = rawPoints.some((point) => point.rt !== null);
+  const points = rawPoints.map((point) => ({
+    ...point,
+    xValue: hasRt ? point.rt : point.index + 1,
+  }));
+  els.featureMapSubtitle.textContent = hasRt
+    ? "RT vs precursor m/z · click a point to open a case"
+    : "Case index vs precursor m/z · click a point to open a case";
+
+  const width = Math.max(520, els.featureMap.clientWidth || 520);
+  const height = 124;
+  const pad = { left: 42, right: 14, top: 12, bottom: 26 };
+  const xMin = Math.min(...points.map((p) => p.xValue));
+  const xMax = Math.max(...points.map((p) => p.xValue));
+  const mzMin = Math.min(...points.map((p) => p.mz));
+  const mzMax = Math.max(...points.map((p) => p.mz));
+  const x = (value) => pad.left + ((value - xMin) / Math.max(xMax - xMin, 1)) * (width - pad.left - pad.right);
+  const y = (mz) => height - pad.bottom - ((mz - mzMin) / Math.max(mzMax - mzMin, 1)) * (height - pad.top - pad.bottom);
+
+  let svg = `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" role="img">`;
+  svg += `<line x1="${pad.left}" y1="${height - pad.bottom}" x2="${width - pad.right}" y2="${height - pad.bottom}" stroke="#aab4c0"/>`;
+  svg += `<line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${height - pad.bottom}" stroke="#aab4c0"/>`;
+  svg += `<text x="${width / 2}" y="${height - 7}" text-anchor="middle" class="axis-label">${hasRt ? "RT" : "case index"}</text>`;
+  svg += `<text x="12" y="${height / 2}" transform="rotate(-90 12 ${height / 2})" text-anchor="middle" class="axis-label">m/z</text>`;
+  for (const point of points) {
+    const active = state.currentCase?.case_id === point.case_id;
+    const cls = `feature-point ${statusClass(point.status)}${active ? " active" : ""}${point.model_evidence_available ? " has-evidence" : ""}`;
+    const xLabel = hasRt ? `RT ${formatNumber(point.rt, 2)}` : `case ${point.index + 1}`;
+    svg += `<circle class="${cls}" data-case-id="${escapeAttr(point.case_id)}" cx="${x(point.xValue).toFixed(2)}" cy="${y(point.mz).toFixed(2)}" r="${active ? 5 : 3.5}"><title>${escapeHtml(point.case_id)} · ${escapeHtml(xLabel)} · m/z ${formatNumber(point.mz, 4)}</title></circle>`;
+  }
+  svg += `</svg>`;
+  els.featureMap.innerHTML = svg;
+  els.featureMap.querySelectorAll(".feature-point").forEach((point) => {
+    point.addEventListener("click", () => loadCase(point.dataset.caseId));
+  });
 }
 
 function loadAnnotationIntoState(annotation) {
@@ -169,7 +301,9 @@ function renderCase() {
   els.caseMeta.textContent = formatFeature(c.feature);
   renderSpectrumTabs();
   renderSpectrum();
+  renderModelEvidence();
   renderAssignments();
+  renderFeatureMap();
 }
 
 function formatFeature(feature) {
@@ -247,6 +381,161 @@ function renderSpectrum() {
     line.addEventListener("mousemove", (event) => showPeakTooltip(event, line));
     line.addEventListener("mouseleave", hidePeakTooltip);
   });
+}
+
+function renderModelEvidence() {
+  const evidence = state.currentCase?.model_evidence;
+  if (!evidence || !Array.isArray(evidence.candidates) || evidence.candidates.length === 0) {
+    els.modelEvidencePanel.classList.add("hidden");
+    els.candidateEvidenceList.innerHTML = "";
+    els.predictedPeakEvidence.innerHTML = "";
+    return;
+  }
+
+  els.modelEvidencePanel.classList.remove("hidden");
+  els.modelEvidenceMeta.textContent = `${evidence.candidate_count} candidates · top ${evidence.top_n} shown · ${evidence.predicted_peaks_per_candidate} predicted peaks each · loaded from ICEBERG files`;
+
+  const formulas = evidence.formula_predictions || [];
+  if (formulas.length) {
+    els.formulaEvidence.innerHTML = formulas
+      .slice(0, 3)
+      .map((item) => {
+        const rank = item.rank ? `#${item.rank}` : "";
+        const score = item.score === null || item.score === undefined ? "" : ` · ${formatNumber(item.score, 4)}`;
+        return `<span>${escapeHtml(rank)} ${escapeHtml(item.formula || "")} ${escapeHtml(item.adduct || "")}${escapeHtml(score)}</span>`;
+      })
+      .join("");
+  } else {
+    els.formulaEvidence.innerHTML = "";
+  }
+
+  els.candidateEvidenceList.innerHTML = "";
+  for (const candidate of evidence.candidates) {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "candidate-evidence-item" + (candidate.candidate_id === state.selectedCandidateId ? " active" : "");
+    item.dataset.candidateId = candidate.candidate_id;
+    item.innerHTML = `
+      <div class="candidate-header">
+        <span class="candidate-rank">#${candidate.rank}</span>
+        <span class="candidate-score">dist ${formatNumber(candidate.entropy_distance, 4)}</span>
+      </div>
+      <img class="candidate-structure" src="${escapeAttr(structureUrl(candidate.smiles, 220, 120))}" alt="Candidate ${candidate.rank} structure" loading="lazy" draggable="false">
+      <div class="candidate-smiles mono">${escapeHtml(candidate.smiles || "")}</div>
+    `;
+    item.querySelector(".candidate-structure")?.addEventListener("error", handleStructureImageError);
+    item.addEventListener("click", () => {
+      state.selectedCandidateId = candidate.candidate_id;
+      renderModelEvidence();
+    });
+    els.candidateEvidenceList.appendChild(item);
+  }
+
+  renderPredictedPeaks();
+}
+
+function renderPredictedPeaks() {
+  const candidate = selectedCandidate();
+  if (!candidate) {
+    els.predictedPeakEvidence.innerHTML = "";
+    return;
+  }
+  const peaks = candidate.predicted_peaks || [];
+  const rows = peaks.length
+    ? peaks
+        .map((peak) => {
+          const ce = peak.collision_label || (peak.collision_energy_ev !== null && peak.collision_energy_ev !== undefined ? `${formatNumber(peak.collision_energy_ev, 1)} eV` : "");
+          return `<tr><td>${formatNumber(peak.mz, 4)}</td><td>${formatNumber(peak.intensity, 3)}</td><td>${escapeHtml(ce)}</td></tr>`;
+        })
+        .join("")
+    : `<tr><td colspan="3">No predicted peaks available</td></tr>`;
+  els.predictedPeakEvidence.innerHTML = `
+    <div class="selected-candidate-card">
+      <img class="selected-candidate-structure" src="${escapeAttr(structureUrl(candidate.smiles, 320, 180))}" alt="Selected candidate structure" draggable="false">
+      <div class="selected-candidate-meta">
+        <div class="candidate-rank">ICEBERG #${candidate.rank}</div>
+        <div class="candidate-score">entropy distance ${formatNumber(candidate.entropy_distance, 4)}</div>
+        <div class="candidate-smiles mono">${escapeHtml(candidate.smiles || "")}</div>
+      </div>
+    </div>
+    <div class="predicted-title">Selected #${candidate.rank} predicted peaks</div>
+    <table>
+      <thead><tr><th>m/z</th><th>Rel.</th><th>CE</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+  els.predictedPeakEvidence
+    .querySelector(".selected-candidate-structure")
+    ?.addEventListener("error", handleStructureImageError);
+}
+
+function handleStructureImageError(event) {
+  const placeholder = document.createElement("div");
+  placeholder.className = "structure-placeholder";
+  placeholder.textContent = "structure unavailable";
+  event.currentTarget.replaceWith(placeholder);
+}
+
+function structureUrl(smiles, width, height) {
+  if (!smiles) return "";
+  const params = new URLSearchParams({
+    smiles,
+    w: String(width),
+    h: String(height),
+  });
+  return `/api/structure.svg?${params.toString()}`;
+}
+
+function selectedCandidate() {
+  const candidates = state.currentCase?.model_evidence?.candidates || [];
+  return candidates.find((item) => item.candidate_id === state.selectedCandidateId) || candidates[0] || null;
+}
+
+function useSelectedCandidate() {
+  const candidate = selectedCandidate();
+  if (!candidate) return;
+  els.finalSmiles.value = candidate.smiles || "";
+  els.finalAdduct.value = candidate.adduct || els.finalAdduct.value;
+  if (candidate.inchikey) els.finalInchikey.value = candidate.inchikey;
+  const topFormula = state.currentCase?.model_evidence?.formula_predictions?.[0];
+  if (topFormula?.formula && !els.finalFormula.value.trim()) {
+    els.finalFormula.value = topFormula.formula;
+  }
+  const note = `ICEBERG starting point: rank ${candidate.rank}, entropy distance ${formatNumber(candidate.entropy_distance, 4)}.`;
+  els.globalNotes.value = els.globalNotes.value.trim()
+    ? `${els.globalNotes.value.trim()}\n${note}`
+    : note;
+  markDirty();
+  flashFinalStructureFields();
+  showToast("Filled Final Structure fields");
+}
+
+function resetFeatureMapView() {
+  els.caseSearch.value = "";
+  els.statusFilter.value = "all";
+  renderCaseList();
+  renderFeatureMap();
+  const firstCaseId = state.cases[0]?.case_id;
+  if (firstCaseId && state.currentCase?.case_id !== firstCaseId) {
+    loadCase(firstCaseId);
+  }
+  showToast("Filters cleared; feature map reset");
+}
+
+function flashFinalStructureFields() {
+  const fields = [
+    els.finalSmiles,
+    els.finalFormula,
+    els.finalAdduct,
+    els.finalInchikey,
+    els.globalNotes,
+  ];
+  els.finalSmiles.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  for (const field of fields) {
+    field.classList.remove("field-flash");
+    void field.offsetWidth;
+    field.classList.add("field-flash");
+  }
 }
 
 function setupLayoutResize() {
@@ -451,6 +740,8 @@ async function saveAnnotation() {
   state.dirty = false;
   const item = state.cases.find((c) => c.case_id === state.currentCase.case_id);
   if (item) item.status = data.annotation.status;
+  if (item) item.final_confidence = data.annotation.final_structure?.confidence || "";
+  renderOverview();
   renderCaseList();
   showToast("Saved annotation");
 }
@@ -472,6 +763,17 @@ function statusLabel(status) {
     review: "review",
     complete: "complete",
   }[status] || status;
+}
+
+function statusClass(status) {
+  return String(status || "not_started").replace(/[^A-Za-z0-9_-]/g, "_");
+}
+
+function formatNumber(value, digits) {
+  if (value === null || value === undefined || value === "") return "";
+  const num = Number(value);
+  if (!Number.isFinite(num)) return String(value);
+  return num.toFixed(digits);
 }
 
 function escapeHtml(value) {
