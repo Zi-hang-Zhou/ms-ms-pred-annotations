@@ -2,12 +2,7 @@
 
 This is a small local web app for manual structural elucidation annotation.
 
-By default, it is designed for the workflow where annotators receive only the
-raw test-case spectra and basic acquisition metadata. In the default blind mode,
-it intentionally does **not** show candidate SMILES, ground truth, ICEBERG
-predictions, model ranks, or any other answer-like information.
-
-The app can also run in an assisted evidence mode where ICEBERG candidates and
+The app can run in an assisted evidence mode where ICEBERG candidates and
 predicted spectra are shown as a starting point for manual review. Use this mode
 only when model evidence is allowed for the annotation task.
 
@@ -111,11 +106,6 @@ http://127.0.0.1:7861/api/export/final_structures.csv
 http://127.0.0.1:7861/api/export/annotations.json
 ```
 
-If port `7861` is already in use, change `PORT=7861` to another port such as
-`PORT=7862`, then open the matching URL.
-
-Do not commit or upload the provided `data/` assets or the saved annotation
-outputs unless you have permission to publish them.
 
 ## Run With the Included Demo Case
 
