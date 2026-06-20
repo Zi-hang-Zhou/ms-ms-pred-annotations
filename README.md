@@ -398,13 +398,7 @@ Export endpoints are available only while `python app.py` is still running:
 - `http://127.0.0.1:7861/api/export/final_structures.csv`
 - `http://127.0.0.1:7861/api/export/annotations.json`
 
-Open these URLs in a browser to view or download the exported CSV/JSON, or use
-`curl` from another terminal:
-
-```bash
-curl -o final_structures.csv http://127.0.0.1:7861/api/export/final_structures.csv
-curl -o annotations.json http://127.0.0.1:7861/api/export/annotations.json
-```
+Open these URLs in a browser to view or download the exported CSV/JSON
 
 These endpoints summarize the saved local annotation JSON files. They do not
 upload data anywhere.
