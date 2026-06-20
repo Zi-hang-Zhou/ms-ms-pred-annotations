@@ -1,6 +1,8 @@
 annotations/*
 !annotations/.gitkeep
 annotations_*/
+data/
+*.zip
 *.mgf
 *.mzML
 *.mzXML

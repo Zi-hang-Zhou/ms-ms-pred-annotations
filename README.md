@@ -40,6 +40,83 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Collaborator Quick Start With Provided ICEBERG Assets
+
+Use this workflow when the project owner provides a zipped assisted-case bundle,
+for example `assisted_cases.zip`. This bundle should already contain one folder
+per test case, with raw spectra plus ICEBERG starting-point evidence.
+
+First clone and install the app:
+
+```bash
+git clone https://github.com/Zi-hang-Zhou/ms-ms-pred-annotations.git
+cd ms-ms-pred-annotations
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Put the provided asset under `data/` and unzip it:
+
+```bash
+mkdir -p data
+unzip /path/to/assisted_cases.zip -d data/
+```
+
+After unzipping, the case directory should look like this:
+
+```text
+data/assisted_cases/
+  case_001/
+    metadata.json
+    experimental_spectra_long.csv
+    iceberg_candidates.csv
+    iceberg_predicted_spectra_long.csv
+    formula_predictions.csv
+  case_002/
+    ...
+```
+
+Start the local annotation app:
+
+```bash
+ANNOTATION_CASE_DIR=data/assisted_cases \
+ANNOTATION_OUTPUT_DIR=annotations_collaborator \
+ANNOTATION_ENABLE_MODEL_EVIDENCE=1 \
+PORT=7861 \
+python app.py
+```
+
+Open:
+
+```text
+http://127.0.0.1:7861
+```
+
+The annotator should now see the raw MS/MS spectrum, ICEBERG candidate
+structures, candidate SMILES, formula predictions, and predicted peak evidence.
+Click **Fill final structure** to copy the selected ICEBERG candidate into the
+manual final-structure fields, then edit or replace it as needed.
+
+Click **Save** after each case. Saved annotations are written locally to:
+
+```text
+annotations_collaborator/<case_id>.json
+```
+
+Export final results while the app is still running:
+
+```text
+http://127.0.0.1:7861/api/export/final_structures.csv
+http://127.0.0.1:7861/api/export/annotations.json
+```
+
+If port `7861` is already in use, change `PORT=7861` to another port such as
+`PORT=7862`, then open the matching URL.
+
+Do not commit or upload the provided `data/` assets or the saved annotation
+outputs unless you have permission to publish them.
+
 ## Run With the Included Demo Case
 
 ```bash
@@ -150,6 +227,48 @@ python scripts/convert_mgf_to_cases.py \
 By default, the converter omits structure-like MGF fields such as `SMILES`,
 `INCHI`, `INCHIKEY`, and `INCHI_AUX`. It also omits `FORMULA` unless you pass
 `--keep-formula`, if `FORMULA` is present in the MGF metadata.
+
+## Build Assisted Cases From Raw Files
+
+Use this workflow only if the provided asset is not already an assisted-case
+bundle. For example, the asset may contain:
+
+```text
+spectra.mgf
+cand_labels.tsv
+iceberg_out/binned_preds.hdf5
+```
+
+Convert the raw spectra first:
+
+```bash
+python scripts/convert_mgf_to_cases.py \
+  --mgf data/raw_iceberg/spectra.mgf \
+  --out data/base_cases \
+  --prefix case
+```
+
+Then pack the ICEBERG output into annotation cases:
+
+```bash
+python scripts/pack_iceberg_outputs_to_cases.py \
+  --base-cases data/base_cases \
+  --iceberg-hdf5 data/raw_iceberg/iceberg_out/binned_preds.hdf5 \
+  --labels data/raw_iceberg/cand_labels.tsv \
+  --out data/assisted_cases \
+  --case-id-column case_id \
+  --top-n 20 \
+  --overwrite
+```
+
+Then start the app with:
+
+```bash
+ANNOTATION_CASE_DIR=data/assisted_cases \
+ANNOTATION_OUTPUT_DIR=annotations_collaborator \
+ANNOTATION_ENABLE_MODEL_EVIDENCE=1 \
+python app.py
+```
 
 ## Pack Raw ICEBERG Output
 
